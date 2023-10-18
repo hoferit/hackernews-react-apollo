@@ -35,7 +35,15 @@ const Search = () => {
       <div>
         Search
         <input type="text" onChange={(e) => setSearchFilter(e.target.value)} />
-        <button>OK</button>
+        <button
+          onClick={() =>
+            executeSearch({
+              variables: { filter: searchFilter },
+            })
+          }
+        >
+          OK
+        </button>
       </div>
       {data &&
         data.feed.links.map((link, index) => (
