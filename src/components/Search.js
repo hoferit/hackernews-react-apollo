@@ -28,6 +28,8 @@ const FEED_SEARCH_QUERY = gql`
 
 const Search = () => {
   const [searchFilter, setSearchFilter] = useState('');
+  const [executeSearch, { data }] = useLazyQuery(FEED_SEARCH_QUERY);
+
   return (
     <>
       <div>
