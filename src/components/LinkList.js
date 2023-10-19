@@ -1,6 +1,8 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import { gql, useQuery } from '@apollo/client';
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LINKS_PER_PAGE } from '../constants';
 import Link from './Link';
 
@@ -65,6 +67,15 @@ const LinkList = () => {
   const { data, loading, error, subscribeToMore } = useQuery(FEED_QUERY, {
     variables: getQueryVariables(isNewPage, page),
   });
+  const getLinksToRender = (isNewPage, data) => {
+    if (isNewPage) {
+      return data.feed.links;
+    }
+    const rankedLinks = data.feed.links.slice();
+    rankedLinks.sort((l1, l2) => l2.votes.length - l1.votes.length);
+    return rankedLinks;
+  };
+  const navigate = useNavigate();
 
   subscribeToMore({
     document: NEW_LINKS_SUBSCRIPTION,
@@ -85,15 +96,42 @@ const LinkList = () => {
   });
 
   return (
-    <div>
+    <>
+      {loading && <p>Loading...</p>}
+      {error && <pre>{JSON.stringify(error, null, 2)}</pre>}
       {data && (
         <>
-          {data.feed.links.map((link, index) => (
-            <Link key={link.id} link={link} index={index} />
+          {getLinksToRender(isNewPage, data).map((link, index) => (
+            <Link key={link.id} link={link} index={index + pageIndex} />
           ))}
+          {isNewPage && (
+            <div className="flex ml4 mv3 gray">
+              <div
+                className="pointer mr2"
+                onClick={() => {
+                  if (page > 1) {
+                    navigate(`/new/${page - 1}`);
+                  }
+                }}
+              >
+                Previous
+              </div>
+              <div
+                className="pointer"
+                onClick={() => {
+                  if (page <= data.feed.count / LINKS_PER_PAGE) {
+                    const nextPage = page + 1;
+                    navigate(`/new/${nextPage}`);
+                  }
+                }}
+              >
+                Next
+              </div>
+            </div>
+          )}
         </>
       )}
-    </div>
+    </>
   );
 };
 
